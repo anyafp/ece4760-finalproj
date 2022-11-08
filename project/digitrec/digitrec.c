@@ -55,12 +55,14 @@ uint16_t DAC_data_0 ; // output value
 
 void update_knn( digit_type test_inst, digit_type train_inst, int min_distances[K_CONST] ) {
   
-  digit_type diff = test_inst ^ train_inst; // Compute the difference using XOR
+  // digit_type diff = test_inst ^ train_inst; // Compute the difference using XOR
 
   int dist = 0;
   // Count the number of set bits
-  for ( int i = 0; i < 49; ++i )
-    dist += diff[i];
+  for ( int i = 0; i < 64; ++i ) {
+    if ( ( test_inst/(double)(1ULL<<i) & 1 ) != ( train_inst/(double)(1ULL<<i) & 1 ) )
+      dist += 1;
+  }
   
   // replace minimum distance
   for ( int i = 0; i < K_CONST; i++ ) {
@@ -139,7 +141,7 @@ static PT_THREAD (protothread_core_0(struct pt *pt)) {
   // Input digit
   static int expected_digit;
   digit_type test[10] = { 0xe3664d8e00, 0x3041060800, 0xc041078000, 0x1c3c1858f00, 0x8363830600, 
-                     0x6183030e00, 0x2081060400, 0x3c1830608,  0x6123850e00,  0xc103810204 }
+                     0x6183030e00, 0x2081060400, 0x3c1830608,  0x6123850e00,  0xc103810204 };
 
   while(1) {
     // user input
