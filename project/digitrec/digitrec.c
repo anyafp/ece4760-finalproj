@@ -9,6 +9,7 @@
 // Include protothreads
 #include "pt_cornell_rp2040_v1.h"
 #include "training_data.h"
+#include "testing_data.h"
 
 // Macros for fixed-point arithmetic (faster than floating point)
 // #define multfix15(a,b) ((fix15)((((signed long long)(a))*((signed long long)(b)))>>15))
@@ -53,16 +54,21 @@ uint16_t DAC_data_0 ; // output value
 
 #define K_CONST 3
 
-void update_knn( digit_type test_inst, digit_type train_inst, int min_distances[K_CONST] ) {
-  
-  // digit_type diff = test_inst ^ train_inst; // Compute the difference using XOR
+int distance_euclidean( int a[784], int b[784] ) {
+  u_int dist = 0;
+  u_int interm = 0;
 
-  int dist = 0;
-  // Count the number of set bits
-  for ( int i = 0; i < 64; ++i ) {
-    if ( ( test_inst/(double)(1ULL<<i) & 1 ) != ( train_inst/(double)(1ULL<<i) & 1 ) )
-      dist += 1;
+  // Iterate through array
+  for ( size_t i = 0; i < 784; i++ ) {
+    interm = a[i] - b[i];
+    dist += interm * interm;
   }
+  return dist;
+}
+
+void update_knn( int test_inst[784], int train_inst[784], int min_distances[K_CONST] ) {
+
+  int dist = distance_euclidean( test_inst, train_inst );
   
   // replace minimum distance
   for ( int i = 0; i < K_CONST; i++ ) {
@@ -74,13 +80,13 @@ void update_knn( digit_type test_inst, digit_type train_inst, int min_distances[
   }
 }
 
-int knn_vote( bit6_t knn_set[10][K_CONST] ) {
+int knn_vote( int knn_set[10][K_CONST] ) {
   int k_dist[K_CONST];     // array of k smallest distances
   int digit_near[K_CONST]; // knn digits
 
   // initialize
   for ( int i = 0; i < K_CONST; i++ ) {
-    k_dist[i] = 50;
+    k_dist[i] = 785;
     digit_near[i] = 10;
   }
 
@@ -97,7 +103,7 @@ int knn_vote( bit6_t knn_set[10][K_CONST] ) {
         // replace if smaller
         if ( dist < k_dist[k] ) {
           // swap so we can check the other knn
-          bit6_t temp1 = k_dist[k];
+          int temp1 = k_dist[k];
           k_dist[k] = dist;
           dist = temp1;
           int temp2 = digit_near[k];
@@ -107,6 +113,14 @@ int knn_vote( bit6_t knn_set[10][K_CONST] ) {
       }
     }
   }
+
+  printf("digit_near = [ ");
+
+  for ( int i = 0; i < K_CONST; i++ ) {
+    printf("%d ", digit_near[i]);
+  }
+
+  printf(" ]\n");
 
   // count number of instances of digit
   int count[K_CONST];
@@ -140,8 +154,6 @@ static PT_THREAD (protothread_core_0(struct pt *pt)) {
 
   // Input digit
   static int expected_digit;
-  digit_type test[10] = { 0xe3664d8e00, 0x3041060800, 0xc041078000, 0x1c3c1858f00, 0x8363830600, 
-                     0x6183030e00, 0x2081060400, 0x3c1830608,  0x6123850e00,  0xc103810204 };
 
   while(1) {
     // user input
@@ -151,7 +163,7 @@ static PT_THREAD (protothread_core_0(struct pt *pt)) {
     sscanf(pt_serial_in_buffer,"%d", &expected_digit);
 
     // Choose a binary representation of the digit inputted
-    digit_type input_digit = test[expected_digit];
+    //int input_digit[784] = testing_data[expected_digit];
 
     // This array stores K minimum distances per training set
     int knn_set[10][K_CONST];
@@ -164,8 +176,8 @@ static PT_THREAD (protothread_core_0(struct pt *pt)) {
     // i is for data sets, and j is looping through each digit
     for ( int i = 0; i < 100; ++i ) {
       for ( int j = 0; j < 10; j++ ) {
-        digit_type training_instance = training_data[j][i]; // Read a new instance from the training set
-        update_knn( input, training_instance, knn_set[j] ); // Update the KNN set
+        //int training_instance[784] = training_data[j][i]; // Read a new instance from the training set
+        update_knn( testing_data[expected_digit], training_data[j][i], knn_set[j] ); // Update the KNN set
       }
     }
 
