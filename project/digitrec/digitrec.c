@@ -54,21 +54,25 @@ uint16_t DAC_data_0 ; // output value
 
 #define K_CONST 3
 
-int distance_euclidean( int a[784], int b[784] ) {
-  u_int dist = 0;
-  u_int interm = 0;
+int distance_euclidean( int a[784], int b[784], int input, int test_num ) {
+  int dist = 0;
+  int interm = 0;
 
   // Iterate through array
-  for ( size_t i = 0; i < 784; i++ ) {
-    interm = a[i] - b[i];
-    dist += interm * interm;
+  for ( int i = 0; i < 784; i++ ) {
+    dist += abs( a[i] - b[i] );
+    //dist += interm * interm;
   }
+
+  if ( input == test_num )
+    printf("dist = %d\n", dist);
+  
   return dist;
 }
 
-void update_knn( int test_inst[784], int train_inst[784], int min_distances[K_CONST] ) {
+void update_knn( int test_inst[784], int train_inst[784], int min_distances[K_CONST], int input, int test_num ) {
 
-  int dist = distance_euclidean( test_inst, train_inst );
+  int dist = distance_euclidean( test_inst, train_inst, input, test_num );
   
   // replace minimum distance
   for ( int i = 0; i < K_CONST; i++ ) {
@@ -83,6 +87,15 @@ void update_knn( int test_inst[784], int train_inst[784], int min_distances[K_CO
 int knn_vote( int knn_set[10][K_CONST] ) {
   int k_dist[K_CONST];     // array of k smallest distances
   int digit_near[K_CONST]; // knn digits
+
+  // printf("knn set:\n ");
+  // for ( int i = 0; i < 10; i++ ) {
+  //   printf("%d:", i);
+  //   for ( int j = 0; j < K_CONST; j++ ) {
+  //     printf("  %d", knn_set[i][j]);
+  //   }
+  //   printf("\n");
+  // }
 
   // initialize
   for ( int i = 0; i < K_CONST; i++ ) {
@@ -171,13 +184,13 @@ static PT_THREAD (protothread_core_0(struct pt *pt)) {
     // Initialize the knn set
     for ( int i = 0; i < 10; ++i )
       for ( int k = 0; k < K_CONST; ++k )
-        knn_set[i][k] = 50; // Max distance is 49
+        knn_set[i][k] = 200000; // Max distance is 200000
     
     // i is for data sets, and j is looping through each digit
-    for ( int i = 0; i < 100; ++i ) {
+    for ( int i = 0; i < 10; ++i ) {
       for ( int j = 0; j < 10; j++ ) {
         //int training_instance[784] = training_data[j][i]; // Read a new instance from the training set
-        update_knn( testing_data[expected_digit], training_data[j][i], knn_set[j] ); // Update the KNN set
+        update_knn( testing_data[expected_digit], training_data[j][i], knn_set[j], j, expected_digit ); // Update the KNN set
       }
     }
 
@@ -192,8 +205,6 @@ static PT_THREAD (protothread_core_0(struct pt *pt)) {
   // Indicate thread end
   PT_END(pt) ;
 }
-
-
 
 
 // Core 0 entry point
