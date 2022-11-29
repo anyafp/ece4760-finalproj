@@ -16,6 +16,12 @@
 5. ```brew install libpng```
 6. ```brew install zlib```
 
+### Install the SDK
+1. ```mkdir Pico``` (I did this in ```~/Pico```)
+2. ```cd ./Pico```
+3. ```git clone -b master https://github.com/raspberrypi/pico-sdk.git```
+
+
 ### Install libpng
 Skip the first 2 steps since the folder is already in the repo
 1. ```wget https://download.sourceforge.net/libpng/libpng-1.6.37.tar.gz```
