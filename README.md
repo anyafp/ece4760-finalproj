@@ -1,5 +1,32 @@
-# Demo Code for the Raspberry Pi Pico
-#### [V. Hunter Adams](https://vanhunteradams.com)
+# Follow These Steps
+
+## MacOS
+
+### Install Homebrew
+1. ```/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"```
+2. ```which brew``` # tells you where homewbrew lives on machine
+3. ```echo 'eval "$([path to homebrew from command above] shellenv)"' >> /Users/<username>/.zprofile```
+4. ```eval "$(/opt/homebrew/bin/brew shellenv)"```
+
+### Install Toolchain
+1. ```brew install cmake```
+2. ```brew tap ArmMbed/homebrew-formulae```
+3. ```brew install arm-none-eabi-gcc```
+4. ```brew install wget```
+5. ```brew install libpng```
+6. ```brew install zlib```
+
+### Install libpng
+Skip the first 2 steps since the folder is already in the repo
+1. ```wget https://download.sourceforge.net/libpng/libpng-1.6.37.tar.gz```
+2. ```tar xvfz libpng-1.6.37.tar.gz```
+3. ```cd libpng-1.6.37```
+4. ```./configure --prefix=/usr/local/libpng/1_6_37```
+5. ```make```
+6. ```sudo make install```
+
+### Make
+1. cmake .. -DZLIB_LIBRARY=zlib -DZLIB_INCLUDE_DIR=/usr/local/Cellar/zlib/1.2.13 -DPNG_LIBRARY=libpng -DPNG_PNG_INCLUDE_DIR=/usr/local/Cellar/libpng/1.6.38
 
 ## What are these demos?
 
