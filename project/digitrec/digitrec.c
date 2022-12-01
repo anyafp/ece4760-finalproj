@@ -10,7 +10,8 @@
 #include "pt_cornell_rp2040_v1.h"
 #include "training_data.h"
 #include "testing_data.h"
-#include "libpng-1.6.37/png.h"
+// #include "libpng-1.6.37/png.h"
+#include "hardware/uart.h"
 
 // Macros for fixed-point arithmetic (faster than floating point)
 // #define multfix15(a,b) ((fix15)((((signed long long)(a))*((signed long long)(b)))>>15))
@@ -54,6 +55,11 @@ uint16_t DAC_data_0 ; // output value
 #define fram_wd    (4)
 
 #define K_CONST 3
+
+#define UART_ID uart1
+#define BAUD_RATE 115200
+#define UART_TX_PIN 4
+#define UART_RX_PIN 5
 
 int distance_euclidean( int a[784], int b[784] ) {
   int dist = 0;
@@ -161,31 +167,31 @@ int knn_vote( int knn_set[10][K_CONST] ) {
   return digit;
 }
 
-void read_png( char *file_name, int img[784] ) {
-  FILE *fp = fopen(file_name, "rb");
-  png_structp png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-  png_infop info_ptr = png_create_info_struct(png_ptr);  
-  png_init_io(png_ptr, fp);
-  png_read_png(png_ptr, info_ptr, PNG_TRANSFORM_IDENTITY, NULL);
-  png_bytepp row_pointers = png_get_rows(png_ptr, info_ptr);
-  int width = png_get_image_width(png_ptr,info_ptr);
-  int height = png_get_image_height(png_ptr,info_ptr);
-  //printf("width = %d, height = %d\n", width, height);
-  int count = 0;
-  for (int i = 0; i < height; i++) {
-    for (int j = 0; j < width * 4; j += 4) {
-      // if (row_pointers[i][j] == 0)
-      //   printf("%d,   ", row_pointers[i][j]);
-      // else
-      //   printf("%d, ", row_pointers[i][j]);
-      img[count] = row_pointers[i][j];
-      count++;
-    }   
-    // printf("\n");
-  }
-  png_destroy_read_struct(&png_ptr, NULL, NULL); 
-  fclose(fp);
-}
+// void read_png( char *file_name, int img[784] ) {
+//   FILE *fp = fopen(file_name, "rb");
+//   png_structp png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+//   png_infop info_ptr = png_create_info_struct(png_ptr);  
+//   png_init_io(png_ptr, fp);
+//   png_read_png(png_ptr, info_ptr, PNG_TRANSFORM_IDENTITY, NULL);
+//   png_bytepp row_pointers = png_get_rows(png_ptr, info_ptr);
+//   int width = png_get_image_width(png_ptr,info_ptr);
+//   int height = png_get_image_height(png_ptr,info_ptr);
+//   //printf("width = %d, height = %d\n", width, height);
+//   int count = 0;
+//   for (int i = 0; i < height; i++) {
+//     for (int j = 0; j < width * 4; j += 4) {
+//       // if (row_pointers[i][j] == 0)
+//       //   printf("%d,   ", row_pointers[i][j]);
+//       // else
+//       //   printf("%d, ", row_pointers[i][j]);
+//       img[count] = row_pointers[i][j];
+//       count++;
+//     }   
+//     // printf("\n");
+//   }
+//   png_destroy_read_struct(&png_ptr, NULL, NULL); 
+//   fclose(fp);
+// }
 
 // This thread runs on core 0
 static PT_THREAD (protothread_core_0(struct pt *pt)) {
@@ -193,28 +199,54 @@ static PT_THREAD (protothread_core_0(struct pt *pt)) {
   PT_BEGIN(pt) ;
 
   // Input digit
-  static char* file_name;
+  static int num;
 
   while(1) {
     // user input
     sprintf(pt_serial_out_buffer, "Input a file name: ");
     serial_write; // spawn a thread to do the non-blocking serial read
-    serial_read;  // convert input string to number
-    sscanf(pt_serial_in_buffer,"%s", &file_name);
+    
+    scanf(pt_serial_in_buffer, "%d", &num);
+    // printf
 
-    int img[784];
+    sprintf(pt_serial_out_buffer, "num = %d\n\r", num);
 
-    read_png( file_name, img );
+    uart_puts(UART_ID, "Hello, UART!\n\r");
 
-    for ( int i = 0; i < 28; i++ ) {
-      for ( int j = 0; j < 28; j++ ) {
-        printf("%d ", img[i*j+j]);
-      }
-      printf("\n");
-    }
+    //uart_puts(UART_ID, "num = %d\n", num);
+
+    // FILE *f = fopen("file.txt", "w");
+    // fprintf(f, "Some text: %d\n", num);
+    // fprintf(f, "hello\n");
+
+    // fclose(f);
+
+    //int test_img[5];
+
+    // for ( int i = 0; i < 5; i++ ) {
+    //   //serial_read;  // convert input string to number
+    //   // scanf blocks core
+    //   // serial read does not block the other threads on the core
+    //   // 38400 baud rate
+    //   scanf(pt_serial_in_buffer,"%d", &num);
+    //   test_img[i] = num;
+    // }
+
+    //int img[784];
+
+    //read_png( file_name, img );
+
+    // for ( int i = 0; i < 28; i++ ) {
+    //   for ( int j = 0; j < 28; j++ ) {
+    //     printf("%d ", img[i*j+j]);
+    //   }
+    //   printf("\n");
+    // }
 
     // Choose a binary representation of the digit inputted
     //int input_digit[784] = testing_data[expected_digit];
+
+    //-----------------------------
 
     // This array stores K minimum distances per training set
     int knn_set[10][K_CONST];
@@ -228,7 +260,7 @@ static PT_THREAD (protothread_core_0(struct pt *pt)) {
     for ( int i = 0; i < 10; ++i ) {
       for ( int j = 0; j < 10; j++ ) {
         //int training_instance[784] = training_data[j][i]; // Read a new instance from the training set
-        update_knn( img, training_data[j][i], knn_set[j] ); // Update the KNN set
+        update_knn( /*img*/, training_data[j][i], knn_set[j] ); // Update the KNN set
       }
     }
 
@@ -238,6 +270,8 @@ static PT_THREAD (protothread_core_0(struct pt *pt)) {
       printf("Success! %d == %d\n", actual_digit, 0);
     else
       printf("Failure! %d != %d\n", actual_digit, 0);
+
+    //---------------------------
   }
 
   // Indicate thread end
@@ -251,6 +285,12 @@ int main() {
     // 1. Serial command 
     // // Initialize stdio/uart (printf won't work unless you do this!)
     stdio_init_all();
+
+    // other UART
+
+    // uart_init(UART_ID, BAUD_RATE);
+    // gpio_set_function(UART_TX_PIN, GPIO_FUNC_UART);
+    // gpio_set_function(UART_RX_PIN, GPIO_FUNC_UART);
 
     // // Initialize SPI channel (channel, baud rate set to 20MHz)
     // spi_init(SPI_PORT, 20000000) ;
