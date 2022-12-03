@@ -34,6 +34,12 @@ Skip the first 2 steps since the folder is already in the repo
 ### Make
 1. cmake .. -DZLIB_LIBRARY=zlib -DZLIB_INCLUDE_DIR=/usr/local/Cellar/zlib/1.2.13 -DPNG_LIBRARY=libpng -DPNG_PNG_INCLUDE_DIR=/usr/local/Cellar/libpng/1.6.38
 
+### Python Dependencies 
+
+1. pip3 install pyserial (just installing serial does not work!) 
+2. pip install mumpy
+3. pip install pillow
+
 ## What are these demos?
 
 This is a collection of RP2040 examples created and assembled for ECE 4760 at Cornell. ECE 4760 students are asked to clone this repository and add their own lab assignments and projects. Some links to course materials are provided below.
