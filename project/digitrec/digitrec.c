@@ -12,6 +12,11 @@
 #include "testing_data.h"
 // #include "libpng-1.6.37/png.h"
 #include "hardware/uart.h"
+#include "vga_graphics.h"
+
+// order for greyscale:
+// 0 1 2 4 3 5 6 7
+// darkest - lightest
 
 // Macros for fixed-point arithmetic (faster than floating point)
 // #define multfix15(a,b) ((fix15)((((signed long long)(a))*((signed long long)(b)))>>15))
@@ -56,7 +61,7 @@ uint16_t DAC_data_0 ; // output value
 
 #define K_CONST 3
 
-#define UART_ID uart1
+#define UART_ID1 uart1
 #define BAUD_RATE 115200
 #define UART_TX_PIN 4
 #define UART_RX_PIN 5
@@ -193,27 +198,61 @@ int knn_vote( int knn_set[10][K_CONST] ) {
 //   fclose(fp);
 // }
 
+int val = 0;
+char num[5];
+
 // This thread runs on core 0
-static PT_THREAD (protothread_core_0(struct pt *pt)) {
+static PT_THREAD (protothread_uart0(struct pt *pt)) {
   // Indicate thread beginning
   PT_BEGIN(pt) ;
 
   // Input digit
-  static int num;
+  //static int num;
+  int i = 0;
 
   while(1) {
-    // user input
-    sprintf(pt_serial_out_buffer, "Input a file name: ");
-    serial_write; // spawn a thread to do the non-blocking serial read
+    PT_YIELD_usec(100) ;
+    // // user input
+    // sprintf(pt_serial_out_buffer, "Input a file name: \n\r");
+    // serial_write; // spawn a thread to do the non-blocking serial read
+    // serial_read;
     
-    scanf(pt_serial_in_buffer, "%d", &num);
-    // printf
+    // sscanf(pt_serial_in_buffer, "%d", &num);
+    // // printf
 
-    sprintf(pt_serial_out_buffer, "num = %d\n\r", num);
+    // sprintf(pt_serial_out_buffer, "num = %d\n\r", num);
+    //uart_puts(UART_ID1, "uart1\n\r");
 
-    uart_puts(UART_ID, "Hello, UART!\n\r");
+    //uart_puts(UART_ID1, "eh? ");
 
-    //uart_puts(UART_ID, "num = %d\n", num);
+    if ( val ) {
+      uart_puts(UART_ID1, "hello: ");
+      for ( int i = 0; i < 5; i++ ) {
+        uart_putc(UART_ID1, num[i]);
+        uart_puts(UART_ID1, " ");
+      }
+      uart_puts(UART_ID1, "\n\r");
+    }
+
+    // sprintf(pt_serial_out_buffer, "Input a file name: \n\r");
+    // serial_write; // spawn a thread to do the non-blocking serial read
+    // serial_read;
+    
+    // sscanf(pt_serial_in_buffer, "%d", &num);
+    
+    // char i_str;
+    // sprintf(i_str, "%d", i);
+    //uart_puts(UART_ID1, "hello .....");
+    // if ( uart_is_readable(UART_ID) ) 
+    //   uart_puts(UART_ID1, "data available!\n\r");
+    // else
+    //   uart_puts(UART_ID1, "data not available\n\r");
+    // uart_puts(UART_ID1, i_str);
+    // uart_puts(UART_ID1, "\n\r");
+    // i = i + 1;
+    
+
+    //uart_puts(UART_ID1, "num = %d\n", num);
 
     // FILE *f = fopen("file.txt", "w");
     // fprintf(f, "Some text: %d\n", num);
@@ -248,34 +287,114 @@ static PT_THREAD (protothread_core_0(struct pt *pt)) {
 
     //-----------------------------
 
-    // This array stores K minimum distances per training set
-    int knn_set[10][K_CONST];
+    // // This array stores K minimum distances per training set
+    // int knn_set[10][K_CONST];
 
-    // Initialize the knn set
-    for ( int i = 0; i < 10; ++i )
-      for ( int k = 0; k < K_CONST; ++k )
-        knn_set[i][k] = 200000; // Max distance is 200000
+    // // Initialize the knn set
+    // for ( int i = 0; i < 10; ++i )
+    //   for ( int k = 0; k < K_CONST; ++k )
+    //     knn_set[i][k] = 200000; // Max distance is 200000
     
-    // i is for data sets, and j is looping through each digit
-    for ( int i = 0; i < 10; ++i ) {
-      for ( int j = 0; j < 10; j++ ) {
-        //int training_instance[784] = training_data[j][i]; // Read a new instance from the training set
-        update_knn( /*img*/, training_data[j][i], knn_set[j] ); // Update the KNN set
-      }
-    }
+    // // i is for data sets, and j is looping through each digit
+    // for ( int i = 0; i < 10; ++i ) {
+    //   for ( int j = 0; j < 10; j++ ) {
+    //     //int training_instance[784] = training_data[j][i]; // Read a new instance from the training set
+    //     update_knn( /*img*/, training_data[j][i], knn_set[j] ); // Update the KNN set
+    //   }
+    // }
 
-    int actual_digit = knn_vote( knn_set ); // Compute the final output
+    // int actual_digit = knn_vote( knn_set ); // Compute the final output
 
-    if ( actual_digit == 0 )
-      printf("Success! %d == %d\n", actual_digit, 0);
-    else
-      printf("Failure! %d != %d\n", actual_digit, 0);
+    // if ( actual_digit == 0 )
+    //   printf("Success! %d == %d\n", actual_digit, 0);
+    // else
+    //   printf("Failure! %d != %d\n", actual_digit, 0);
 
     //---------------------------
   }
 
   // Indicate thread end
   PT_END(pt) ;
+}
+
+// This thread runs on core 1
+static PT_THREAD (protothread_uart1(struct pt *pt)) {
+  // Indicate thread beginning
+  PT_BEGIN(pt) ;
+
+  // Input digit
+  //static char num[5];
+
+  while(1) {
+    //uart_puts(UART_ID, "uart0\n\r");
+    PT_YIELD_usec(100) ;
+    // user input
+    // printf("Hello?? ----\n");
+    // sprintf(pt_serial_out_buffer, "Input a file name: \n\r");
+    // serial_write; // spawn a thread to do the non-blocking serial read
+    // serial_read;
+    
+    //sscanf(pt_serial_in_buffer, "%c", &num);
+    for ( int i = 0; i < 5; i++ ) {
+      while(!uart_is_readable(UART_ID));
+      //PT_YIELD_UNTIL(pt, (int)uart_is_readable(UART_ID)) ;
+      uart_puts(UART_ID1, "reading");
+      num[i] = uart_getc(UART_ID);
+    }
+
+    val = 1;
+    uart_puts(UART_ID1, "changing val");
+    if ( val )
+      uart_puts(UART_ID1, "val changed");
+    else
+      uart_puts(UART_ID1, "val not changed");
+    //uart_puts(UART_ID1, val);
+    // fillRect(110, 110, 10, 10, 0);
+    // fillRect(120, 110, 10, 10, 1);
+    // fillRect(130, 110, 10, 10, 2);
+    // fillRect(140, 110, 10, 10, 4);
+    // fillRect(150, 110, 10, 10, 3);
+    // fillRect(160, 110, 10, 10, 5);
+    // fillRect(170, 110, 10, 10, 6);
+    // fillRect(180, 110, 10, 10, 7);
+
+    // for(int row = 0; row < 28; row++) {
+    //   for(int col = 0; col < 28; col++) {
+    //     if ( image[28*row + col] < 41 )
+    //       fillRect(col*10 + 100, row*10 + 100, 10, 10, 0);
+    //     else if ( image[28*row + col] < 83 )
+    //       fillRect(col*10 + 100, row*10 + 100, 10, 10, 1);
+    //     else if ( image[28*row + col] < 125 )
+    //       fillRect(col*10 + 100, row*10 + 100, 10, 10, 2);
+    //     else if ( image[28*row + col] < 167 )
+    //       fillRect(col*10 + 100, row*10 + 100, 10, 10, 3);
+    //     else if ( image[28*row + col] < 209 )
+    //       fillRect(col*10 + 100, row*10 + 100, 10, 10, 6);
+    //     else
+    //       fillRect(col*10 + 100, row*10 + 100, 10, 10, 7);
+    //   }
+    // }
+    
+    // for ( int j = 0; j < 7; j++ )
+    //   for ( int i = 0; i < 7; i++ ) 
+    //     fillRect(110 + i*10, 40 + j*10, 10, 10, i);
+
+    //uart_puts(UART_ID1, "hello!!! hello??? uart hello uart\n\r");
+
+    //val = num;
+  
+  }
+
+  // Indicate thread end
+  PT_END(pt) ;
+}
+
+void core1_main(){
+  // Add animation thread
+  pt_add_thread(protothread_uart1) ;
+  // Start the scheduler
+  pt_schedule_start ;
+
 }
 
 
@@ -287,10 +406,24 @@ int main() {
     stdio_init_all();
 
     // other UART
+    //initVGA() ;
 
-    // uart_init(UART_ID, BAUD_RATE);
-    // gpio_set_function(UART_TX_PIN, GPIO_FUNC_UART);
-    // gpio_set_function(UART_RX_PIN, GPIO_FUNC_UART);
+    uart_init(UART_ID1, BAUD_RATE);
+    gpio_set_function(UART_TX_PIN, GPIO_FUNC_UART);
+    gpio_set_function(UART_RX_PIN, GPIO_FUNC_UART);
+    uart_set_fifo_enabled(UART_ID1, 1); // on by default actually...
+
+    while(uart_is_readable(UART_ID)){uart_getc(UART_ID);}
+
+    // //void draw() {
+    // for(int row = 0; row < 28; row++) {
+    //   for(int col = 0; col < 28; col++) {
+    //     if ( image[28*row + col] > 100 )
+    //       fillRect(row + 20, col + 20, 10, 10, WHITE);
+    //     // fillRect(row + 20, col + 20, 10, 10, (image[28*row + col], image[28*row + col], image[28*row + col]));
+    //   }
+    // }
+    //}
 
     // // Initialize SPI channel (channel, baud rate set to 20MHz)
     // spi_init(SPI_PORT, 20000000) ;
@@ -313,8 +446,13 @@ int main() {
     // gpio_set_dir(LED, GPIO_OUT) ;
     // gpio_put(LED, 0) ;
 
+    // start core 1 
+    multicore_reset_core1();
+    multicore_launch_core1(&core1_main);
+
     // Add core 0 threads
-    pt_add_thread(protothread_core_0) ;
+    pt_add_thread(protothread_uart0) ;
+    
 
     // Start scheduling core 0 threads
     pt_schedule_start ;

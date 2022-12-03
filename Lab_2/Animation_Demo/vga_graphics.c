@@ -172,6 +172,8 @@ void drawPixel(short x, short y, char color) {
     }
 }
 
+// R2R DAC
+
 void drawVLine(short x, short y, short h, char color) {
     for (short i=y; i<(y+h); i++) {
         drawPixel(x, i, color) ;

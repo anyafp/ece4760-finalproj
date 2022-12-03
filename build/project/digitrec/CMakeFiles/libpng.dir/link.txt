@@ -1,0 +1,2 @@
+/usr/local/bin/arm-none-eabi-ar qc liblibpng.a "CMakeFiles/libpng.dir/libpng-1.6.37/png.c.obj"
+/usr/local/bin/arm-none-eabi-ranlib liblibpng.a

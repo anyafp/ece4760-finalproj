@@ -38,6 +38,7 @@
 #include "hardware/pll.h"
 // Include protothreads
 #include "pt_cornell_rp2040_v1.h"
+#include "testing_data.h"
 
 // === the fixed point macros ========================================
 typedef signed int fix15 ;
@@ -178,6 +179,21 @@ static PT_THREAD (protothread_anim(struct pt *pt))
       drawArena() ;
       // delay in accordance with frame rate
       spare_time = FRAME_RATE - (time_us_32() - begin_time) ;
+      for(int row = 0; row < 28; row++) {
+        for(int col = 0; col < 28; col++) {
+          if ( image[28*row + col] > 0 )
+            fillRect(col*10 + 100, row*10 + 100, 10, 10, 3);
+          //fillRect(col*10 + 100, row*10 + 100, 10, 10, (image[28*row + col], image[28*row + col], image[28*row + col]));
+        }
+      }
+      fillRect(110, 110, 10, 10, 0);
+      fillRect(120, 110, 10, 10, 1);
+      fillRect(130, 110, 10, 10, 2);
+      fillRect(140, 110, 10, 10, 3);
+      fillRect(150, 110, 10, 10, 4);
+      fillRect(160, 110, 10, 10, 5);
+      fillRect(170, 110, 10, 10, 6);
+      fillRect(180, 110, 10, 10, 7);
       // yield for necessary amount of time
       PT_YIELD_usec(spare_time) ;
      // NEVER exit while

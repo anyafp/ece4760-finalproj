@@ -1,5 +1,11 @@
 add_executable(digitrec digitrec.c)
 
+add_compile_options(-Ofast)
+
+pico_generate_pio_header(digitrec ${CMAKE_CURRENT_LIST_DIR}/hsync.pio)
+pico_generate_pio_header(digitrec ${CMAKE_CURRENT_LIST_DIR}/vsync.pio)
+pico_generate_pio_header(digitrec ${CMAKE_CURRENT_LIST_DIR}/rgb.pio)
+
 # add_compile_options(-lpng)
 # add_library(libpng STATIC /Users/anya/Pico/ece4760-finalproj/project/digitrec/libpng-1.6.37/png.c)
 
@@ -24,12 +30,12 @@ add_executable(digitrec digitrec.c)
 
 # target_include_directories(libpng PUBLIC ${PNG_INCLUDE_DIR})
 
-
+target_sources(digitrec PRIVATE digitrec.c vga_graphics.c)
 
 #target_link_directories(digitrec PUBLIC /Users/anya/Pico/ece4760-finalproj/project/digitrec)
 
 # Add pico_multicore which is required for multicore functionality
-target_link_libraries(digitrec pico_stdlib pico_multicore pico_bootsel_via_double_reset hardware_sync hardware_spi)
+target_link_libraries(digitrec PRIVATE pico_stdlib pico_divider pico_multicore pico_bootsel_via_double_reset hardware_pio hardware_dma hardware_adc hardware_irq hardware_clocks hardware_pll hardware_sync hardware_spi)
 
 # create map/bin/hex file etc.
 pico_add_extra_outputs(digitrec)
