@@ -1,3 +1,0 @@
-/Users/anya/Pico/ece4760-finalproj/build/pioasm/CMakeFiles/pioasm.dir
-/Users/anya/Pico/ece4760-finalproj/build/pioasm/CMakeFiles/edit_cache.dir
-/Users/anya/Pico/ece4760-finalproj/build/pioasm/CMakeFiles/rebuild_cache.dir
