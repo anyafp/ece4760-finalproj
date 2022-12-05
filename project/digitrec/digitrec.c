@@ -214,7 +214,8 @@ static PT_THREAD (protothread_uart1(struct pt *pt)) {
   PT_BEGIN(pt) ;
 
   while(1) {
-    // uart_puts(UART_ID, "uart0\n\r"); // Check usb serial number for uart0
+    // uart_puts(UART_ID, "uart0");
+    // uart_puts(UART_ID1, "uart1");
     PT_YIELD_usec(100) ;
 
     // Iterate 

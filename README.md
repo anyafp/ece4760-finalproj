@@ -1,4 +1,4 @@
-# Follow These Steps
+# Follow These Steps to Run the Project
 
 ## MacOS
 
@@ -31,3 +31,23 @@
 4. ```export PICO_SDK_PATH=../../pico-sdk```
 5. ```cmake ..```
 6. ```make```
+
+### Determine the uart usbserial match
+1. Comment in lines 217 and 218 in ```digitrec.c```
+2. Open up Terminal on Mac
+3. ```ls /dev/tty.*``` and note the usbserial numbers
+    * e.g. ```/dev/tty.usbserial-0001``` and ```/dev/tty.usbserial-3```
+4. Open two terminal windows and open the serial terminal for the two usbserial ports -- ```screen <usbserial numbers> 115200```
+    * e.g. ```screen /dev/tty.usbserial-0001 115200``` and ```creen /dev/tty.usbserial-3 115200``` on the two windows
+    * 115200 is the baud rate
+5. Note which usbserial corresponds to which uart, close the terminals, open a new terminal and type ```killall screen```
+6. Comment out lines 217 and 218 in ```digitrec.c```
+7. Save ```serial_write.py``` somewhere on your computer (not in ~/Pico) -- I recommend your Documents folder 
+7. In ```serial_write.py```, change line ___ to specify the usbserial number for **uart0**
+    * e.g. ```ser = serial.Serial('/dev/tty.usbserial-3', 115200, timeout=0.05)```
+8. Open up a paint application (I downloaded Paintbrush)
+9. Specify your canvas to be of any **square** size (200x200 recommended)
+10. Using the largest brush thickness (stroke size 10), draw your digit
+11. Save the digit in **bmp format** to the same directory as ```serial_write.py```
+12. Run ```serial_write.py``` and enter your image file name
+13. Your drawn image and the predicted digit will appear on the VGA screen
