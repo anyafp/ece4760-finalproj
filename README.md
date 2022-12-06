@@ -22,7 +22,8 @@
 6. ```cd ..```
 
 ### Clone Repo
-1. ```git clone -b master https://github.com/anyafp/ece4760-finalproj.git```
+1. ```cd ~/Pico```
+2. ```git clone -b master https://github.com/anyafp/ece4760-finalproj.git```
 
 ### Build Project
 1. ```cd ~/Pico/ece4760-finalproj```
