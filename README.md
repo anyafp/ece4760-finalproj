@@ -38,7 +38,7 @@
 3. ```ls /dev/tty.*``` and note the usbserial numbers
     * e.g. ```/dev/tty.usbserial-0001``` and ```/dev/tty.usbserial-3```
 4. Open two terminal windows and open the serial terminal for the two usbserial ports -- ```screen <usbserial numbers> 115200```
-    * e.g. ```screen /dev/tty.usbserial-0001 115200``` and ```creen /dev/tty.usbserial-3 115200``` on the two windows
+    * e.g. ```screen /dev/tty.usbserial-0001 115200``` and ```screen /dev/tty.usbserial-3 115200``` on the two windows
     * 115200 is the baud rate
 5. Note which usbserial corresponds to which uart, close the terminals, open a new terminal and type ```killall screen```
 6. Comment out lines 217 and 218 in ```digitrec.c```
