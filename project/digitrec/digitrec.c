@@ -43,7 +43,7 @@ int distance_euclidean( int a[NUM_VAL], int b[NUM_VAL] ) {
   return dist;
 }
 
-void update_knn( int test_inst[NUM_VAL], int train_inst[NUM_VAL], int min_distances[K_CONST]) {
+void update_knn( char test_inst[NUM_VAL], char train_inst[NUM_VAL], char min_distances[K_CONST]) {
 
   int dist = distance_euclidean( test_inst, train_inst );
   
