@@ -46,7 +46,7 @@
 7. ```cd ~/Pico/ece4760-finalproj/build```
 8. ```make```
 9. Save ```serial_write.py``` somewhere on your computer (not in ~/Pico) -- I recommend your Documents folder 
-10. In ```serial_write.py```, change line ___ to specify the usbserial number for **uart0**
+10. In ```serial_write.py```, change line ___ to specify the usbserial number for **uart1**
     * e.g. ```ser = serial.Serial('/dev/tty.usbserial-3', 115200, timeout=0.05)```
 11. Open up a paint application (I downloaded Paintbrush)
 12. Specify your canvas to be of any **square** size (200x200 recommended)
