@@ -1,5 +1,6 @@
 // Include necessary libraries
 #include <stdio.h>
+#include <stdlib.h>
 #include <math.h>
 #include <string.h>
 #include "pico/stdlib.h"
@@ -13,7 +14,7 @@
 #include "hardware/uart.h"
 #include "vga_graphics.h"
 
-#define NUM_VAL 784
+#define NUM_VAL 785
 
 // order for greyscale:
 // 0 1 2 4 3 5 6 7
@@ -27,23 +28,30 @@
 #define K_CONST 3
 
 // Initialize global variables
-char num[NUM_VAL][3];     // Array of pixels in chars/strings
-int  count[NUM_VAL];      // Number of chars per pixel e.g. 255 has 3 chars
-int  actual_num[NUM_VAL]; // Pixel values in integers
-int  final_val = 0;       // All the pixels are valid
+char num[NUM_VAL][3];      // Array of pixels in chars/strings
+int  count[NUM_VAL];       // Number of chars per pixel e.g. 255 has 3 chars
+int  actual_num[NUM_VAL];  // Pixel values in integers
+char actual_char[NUM_VAL]; // Pixel values in char (8bits)
+int  final_val = 0;        // All the pixels are valid
 
-int distance_euclidean( int a[NUM_VAL], int b[NUM_VAL] ) {
+int abs( int val ) {
+  if ( val < 0 )
+    return -val;
+  return val;
+}
+
+int distance_euclidean( char a[NUM_VAL], const char b[NUM_VAL] ) {
   int dist = 0;
   int interm = 0;
 
   // Iterate through array
   for ( int i = 0; i < NUM_VAL; i++ )
-    dist += abs( a[i] - b[i] );
+    dist += abs( (int)a[i] - (int)b[i] );
   
   return dist;
 }
 
-void update_knn( char test_inst[NUM_VAL], char train_inst[NUM_VAL], char min_distances[K_CONST]) {
+void update_knn( char test_inst[NUM_VAL], const char train_inst[NUM_VAL], int min_distances[K_CONST]) {
 
   int dist = distance_euclidean( test_inst, train_inst );
   
@@ -140,11 +148,13 @@ static PT_THREAD (protothread_uart0(struct pt *pt)) {
         // Convert to integer
         if ( count[i] < 2 ) {
           actual_num[i] = num[i][0] - '0';
+          actual_char[i] = actual_num[i];
         } else {
           char str[3] = "";
           for ( int j = 0; j < count[i]; j++ )
             strncat(str, &num[i][j], 1);
           actual_num[i] = atoi(str);
+          actual_char[i] = actual_num[i];
         }
       }
 
@@ -182,7 +192,7 @@ static PT_THREAD (protothread_uart0(struct pt *pt)) {
       for ( int i = 0; i < 10; ++i ) {
         for ( int j = 0; j < 10; j++ ) {
           //int training_instance[NUM_VAL] = training_data[j][i]; // Read a new instance from the training set
-          update_knn( actual_num, training_data[j][i], knn_set[j] ); // Update the KNN set
+          update_knn( actual_char, training_data[j][i], knn_set[j] ); // Update the KNN set
         }
       }
 
