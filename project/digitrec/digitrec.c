@@ -181,16 +181,16 @@ static PT_THREAD (protothread_uart0(struct pt *pt)) {
       // -----------------------------
 
       // This array stores K minimum distances per training set
-      int knn_set[10][K_CONST];
+      int knn_set[26][K_CONST];
 
       // Initialize the knn set
-      for ( int i = 0; i < 10; ++i )
+      for ( int i = 0; i < 26; ++i )
         for ( int k = 0; k < K_CONST; ++k )
           knn_set[i][k] = 200000; // Max distance is 200000
       
       // i is for training data sets, and j is looping through each digit
-      for ( int i = 0; i < 10; ++i ) {
-        for ( int j = 0; j < 10; j++ ) {
+      for ( int i = 0; i < TRAINING_SIZE; ++i ) {
+        for ( int j = 0; j < 26; j++ ) {
           //int training_instance[NUM_VAL] = training_data[j][i]; // Read a new instance from the training set
           update_knn( actual_char, training_data[j][i], knn_set[j] ); // Update the KNN set
         }
@@ -224,8 +224,8 @@ static PT_THREAD (protothread_uart1(struct pt *pt)) {
   PT_BEGIN(pt) ;
 
   while(1) {
-    // uart_puts(UART_ID, "uart0");
-    // uart_puts(UART_ID1, "uart1");
+    uart_puts(UART_ID, "uart0");
+    uart_puts(UART_ID1, "uart1");
     PT_YIELD_usec(100) ;
 
     // Iterate 
