@@ -14,7 +14,7 @@
 #include "hardware/uart.h"
 #include "vga_graphics.h"
 
-#define NUM_VAL 785
+#define NUM_VAL 784
 
 // order for greyscale:
 // 0 1 2 4 3 5 6 7
@@ -25,7 +25,7 @@
 #define UART_TX_PIN 4
 #define UART_RX_PIN 5
 
-#define K_CONST 3
+#define K_CONST 5
 
 // Initialize global variables
 char num[NUM_VAL][3];      // Array of pixels in chars/strings
@@ -33,6 +33,7 @@ int  count[NUM_VAL];       // Number of chars per pixel e.g. 255 has 3 chars
 int  actual_num[NUM_VAL];  // Pixel values in integers
 char actual_char[NUM_VAL]; // Pixel values in char (8bits)
 int  final_val = 0;        // All the pixels are valid
+char char_arr[26] = {'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z'};
 
 int abs( int val ) {
   if ( val < 0 )
@@ -53,8 +54,7 @@ int distance_euclidean( char a[NUM_VAL], const char b[NUM_VAL] ) {
 
 void update_knn( char test_inst[NUM_VAL], const char train_inst[NUM_VAL], int min_distances[K_CONST]) {
 
-  int dist = distance_euclidean( test_inst, train_inst );
-  
+  int dist = distance_euclidean( test_inst, train_inst );  
   // Replace minimum distance
   for ( int i = 0; i < K_CONST; i++ ) {
     if ( dist < min_distances[i] ) {
@@ -65,11 +65,12 @@ void update_knn( char test_inst[NUM_VAL], const char train_inst[NUM_VAL], int mi
   }
 }
 
-int knn_vote( int knn_set[10][K_CONST] ) {
+int knn_vote( int knn_set[26][K_CONST] ) {
   int k_dist[K_CONST];     // Array of k smallest distances
   int digit_near[K_CONST]; // knn digits
+  printf("\n");
 
-  for ( int i = 0; i < 10; i++ ) {
+  for ( int i = 0; i < 26; i++ ) {
     printf("%d: ", i);
     for ( int j = 0; j < K_CONST; j++ ) {
       printf("%d ", knn_set[i][j]);
@@ -80,11 +81,11 @@ int knn_vote( int knn_set[10][K_CONST] ) {
   // Initialize
   for ( int i = 0; i < K_CONST; i++ ) {
     k_dist[i] = 200000;
-    digit_near[i] = 10;
+    digit_near[i] = 27;
   }
 
   // Loop through each minimum distances
-  for ( int i = 0; i < 10; i++ ) {
+  for ( int i = 0; i < 26; i++ ) {
     for ( int j = 0; j < K_CONST; j++ ) {
 
       // Assign distance and digit
@@ -198,13 +199,14 @@ static PT_THREAD (protothread_uart0(struct pt *pt)) {
 
       int actual_digit = knn_vote( knn_set ); // Compute the final output
 
-      printf("Expected: %d\n", actual_digit);
+
+      printf("Expected: %c\n", char_arr[actual_digit]);
 
       //-----------------------------
 
       static char str_num_boids_0[100];
 
-      sprintf(str_num_boids_0, "Predicted Digit: %d", actual_digit);
+      sprintf(str_num_boids_0, "Predicted Digit: %c", char_arr[actual_digit]);
       setCursor(215,400);
       setTextColor(111);
       setTextSize(2);
